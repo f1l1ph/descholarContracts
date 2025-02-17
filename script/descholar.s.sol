@@ -11,6 +11,16 @@ contract DeployDescholar is Script {
 
         Descholar desch = new Descholar(msg.sender);
 
+        postTestScholarship(desch);
+
+        console.log(
+            "Deployed descholar contract at address: %s",
+            address(desch)
+        );
+        vm.stopBroadcast();
+    }
+
+    function postTestScholarship(Descholar desch) private {
         desch.postScholarship(
             "Demo Scholarship",
             "This is a demo scholarship for testing purposes.",
@@ -19,11 +29,5 @@ contract DeployDescholar is Script {
             block.timestamp + 30 days,
             address(0)
         );
-
-        console.log(
-            "Deployed descholar contract at address: %s",
-            address(desch)
-        );
-        vm.stopBroadcast();
     }
 }

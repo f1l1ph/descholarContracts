@@ -8,8 +8,6 @@ import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Scholarship, ApplicationStatus, Application} from "./descholar.utilities.sol";
 
-// import "@openzeppelin/contracts/utils/Address.sol";
-
 contract Descholar is ReentrancyGuard, Ownable, Pausable {
     // Constructor
     constructor(address initialOwner) Ownable(initialOwner) {}
