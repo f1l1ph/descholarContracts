@@ -4,3 +4,6 @@
 [submodule "contracts/edu/lib/foundry-devops"]
 	path = contracts/edu/lib/foundry-devops
 	url = https://github.com/ChainAccelOrg/foundry-devops
+[submodule "lib/foundry-devops"]
+	path = lib/foundry-devops
+	url = https://github.com/Cyfrin/foundry-devops
