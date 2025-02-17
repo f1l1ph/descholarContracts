@@ -23,3 +23,13 @@ enum ApplicationStatus {
     Approved,
     Rejected
 }
+
+struct Application {
+    uint256 id;
+    uint256 scholarshipId;
+    address applicant;
+    string name;
+    string details;
+    ApplicationStatus status;
+    uint256 appliedAt;
+}

@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {Scholarship, ApplicationStatus} from "./descholar.utilities.sol";
+import {Scholarship, ApplicationStatus, Application} from "./descholar.utilities.sol";
 
 // import "@openzeppelin/contracts/utils/Address.sol";
 
@@ -45,16 +45,6 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         uint256 indexed scholarshipId,
         uint256 refundAmount
     );
-
-    struct Application {
-        uint256 id;
-        uint256 scholarshipId;
-        address applicant;
-        string name;
-        string details;
-        ApplicationStatus status;
-        uint256 appliedAt;
-    }
 
     // State variables
     Scholarship[] public scholarships;
@@ -204,11 +194,11 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         application.status = ApplicationStatus.Approved;
         scholarship.remainingGrants--;
 
-        //rewrite here for erc20
-        (bool success, ) = payable(application.applicant).call{
-            value: scholarship.grantAmount
-        }("");
-        require(success, "Transfer failed");
+        bool success = IERC20(scholarship.tokenId).transfer(
+            application.applicant,
+            scholarship.grantAmount
+        );
+        require(success, "token transfer failed");
 
         emit ApplicationStatusChanged(
             applicationId,
@@ -245,8 +235,11 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         scholarship.cancellationReason = reason;
         scholarship.cancelledAt = block.timestamp;
 
-        (bool success, ) = payable(msg.sender).call{value: refundAmount}("");
-        require(success, "Refund transfer failed");
+        bool success = IERC20(scholarship.tokenId).transfer(
+            msg.sender,
+            refundAmount
+        );
+        require(success, "token transfer failed");
 
         emit ScholarshipCancelled(scholarshipId, reason, refundAmount);
     }
@@ -278,9 +271,11 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         scholarship.active = false;
         scholarship.remainingGrants = 0;
 
-        //rewrite here for erc20
-        (bool success, ) = payable(msg.sender).call{value: refundAmount}("");
-        require(success, "Refund transfer failed");
+        bool success = IERC20(scholarship.tokenId).transfer(
+            msg.sender,
+            refundAmount
+        );
+        require(success, "token transfer failed");
 
         emit ScholarshipWithdrawn(scholarshipId, refundAmount);
     }
