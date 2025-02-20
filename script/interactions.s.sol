@@ -11,10 +11,7 @@ contract PostScholarship is Script {
     address public USER = makeAddr("user");
 
     function run() external {
-        address mostRecentlyDeployed = DevOpsTools.get_most_recent_deployment(
-            "Descholar",
-            block.chainid
-        );
+        address mostRecentlyDeployed = DevOpsTools.get_most_recent_deployment("Descholar", block.chainid);
 
         vm.startBroadcast();
         Descholar(mostRecentlyDeployed).postScholarship(

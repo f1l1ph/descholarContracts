@@ -55,10 +55,7 @@ contract DescholarTest is Test {
         // Prank as admin
         vm.startPrank(admin);
         // Approve descholar contract to spend tokens
-        mockToken.approve(
-            address(descholarContract),
-            grantAmount * availableGrants
-        );
+        mockToken.approve(address(descholarContract), grantAmount * availableGrants);
 
         // Calculate total amount
         totalAmount = grantAmount * availableGrants;
@@ -77,22 +74,16 @@ contract DescholarTest is Test {
         vm.stopPrank();
 
         // Verify scholarship is added
-        Scholarship memory storedScholarship = descholarContract
-            .getScholarships()[0];
+        Scholarship memory storedScholarship = descholarContract.getScholarships()[0];
 
-        assert(
-            keccak256(bytes(storedScholarship.name)) ==
-                keccak256(bytes("Test Scholarship"))
-        );
+        assert(keccak256(bytes(storedScholarship.name)) == keccak256(bytes("Test Scholarship")));
         assert(storedScholarship.remainingGrants == availableGrants);
         assert(storedScholarship.grantAmount == uint256(grantAmount));
         assert(storedScholarship.creator == admin);
         assert(storedScholarship.tokenId == address(mockToken));
 
         // Verify tokens are transferred to descholar contract
-        uint256 contractBalance = mockToken.balanceOf(
-            address(descholarContract)
-        );
+        uint256 contractBalance = mockToken.balanceOf(address(descholarContract));
         assertEq(contractBalance, totalAmount);
 
         // Verify admin's token balance

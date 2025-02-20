@@ -15,34 +15,12 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
     //add custom errors
 
     // Events
-    event ScholarshipCreated(
-        uint256 indexed scholarshipId,
-        address indexed creator,
-        uint256 totalAmount
-    );
-    event ApplicationSubmitted(
-        uint256 indexed scholarshipId,
-        uint256 indexed applicationId,
-        address applicant
-    );
-    event ApplicationStatusChanged(
-        uint256 indexed applicationId,
-        ApplicationStatus status
-    );
-    event GrantAwarded(
-        uint256 indexed scholarshipId,
-        address indexed recipient,
-        uint256 amount
-    );
-    event ScholarshipCancelled(
-        uint256 indexed scholarshipId,
-        string reason,
-        uint256 refundAmount
-    );
-    event ScholarshipWithdrawn(
-        uint256 indexed scholarshipId,
-        uint256 refundAmount
-    );
+    event ScholarshipCreated(uint256 indexed scholarshipId, address indexed creator, uint256 totalAmount);
+    event ApplicationSubmitted(uint256 indexed scholarshipId, uint256 indexed applicationId, address applicant);
+    event ApplicationStatusChanged(uint256 indexed applicationId, ApplicationStatus status);
+    event GrantAwarded(uint256 indexed scholarshipId, address indexed recipient, uint256 amount);
+    event ScholarshipCancelled(uint256 indexed scholarshipId, string reason, uint256 refundAmount);
+    event ScholarshipWithdrawn(uint256 indexed scholarshipId, uint256 refundAmount);
 
     // State variables
     Scholarship[] public scholarships;
@@ -66,18 +44,12 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
 
     modifier scholarshipActive(uint256 scholarshipId) {
         require(scholarships[scholarshipId].active, "Scholarship not active");
-        require(
-            block.timestamp < scholarships[scholarshipId].endDate,
-            "Scholarship expired"
-        );
+        require(block.timestamp < scholarships[scholarshipId].endDate, "Scholarship expired");
         _;
     }
 
     modifier onlyScholarshipCreator(uint256 scholarshipId) {
-        require(
-            msg.sender == scholarships[scholarshipId].creator,
-            "Not scholarship creator"
-        );
+        require(msg.sender == scholarships[scholarshipId].creator, "Not scholarship creator");
         _;
     }
 
@@ -93,19 +65,13 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         require(bytes(name).length > 0, "Empty name");
         require(bytes(details).length > 0, "Empty details");
         require(grantAmount >= MIN_GRANT_AMOUNT, "Grant amount too low");
-        require(
-            numberOfGrants > 0 && numberOfGrants <= MAX_GRANTS,
-            "Invalid number of grants"
-        );
+        require(numberOfGrants > 0 && numberOfGrants <= MAX_GRANTS, "Invalid number of grants");
         require(endDate > block.timestamp, "Invalid end date");
 
         require(checkIsContract(tokenId), "Invalid token address"); // check if address is a contract
         IERC20 token = IERC20(tokenId);
         uint256 totalAmount = grantAmount * numberOfGrants;
-        require(
-            token.transferFrom(msg.sender, address(this), totalAmount),
-            "Transfer failed"
-        ); //erc20 support //TODO: custom errors
+        require(token.transferFrom(msg.sender, address(this), totalAmount), "Transfer failed"); //erc20 support //TODO: custom errors
         // require(msg.value == totalAmount, "Incorrect payment amount"); // old version
 
         uint256 scholarshipId = scholarships.length;
@@ -132,11 +98,7 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         emit ScholarshipCreated(scholarshipId, msg.sender, totalAmount);
     }
 
-    function applyForScholarship(
-        uint256 scholarshipId,
-        string calldata name,
-        string calldata details
-    )
+    function applyForScholarship(uint256 scholarshipId, string calldata name, string calldata details)
         external
         whenNotPaused
         nonReentrant
@@ -166,10 +128,7 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         emit ApplicationSubmitted(scholarshipId, applicationId, msg.sender);
     }
 
-    function approveApplication(
-        uint256 scholarshipId,
-        uint256 applicationId
-    )
+    function approveApplication(uint256 scholarshipId, uint256 applicationId)
         external
         whenNotPaused
         nonReentrant
@@ -177,14 +136,8 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         onlyScholarshipCreator(scholarshipId)
     {
         Application storage application = applications[applicationId];
-        require(
-            application.scholarshipId == scholarshipId,
-            "Application mismatch"
-        );
-        require(
-            application.status == ApplicationStatus.Applied,
-            "Invalid application status"
-        );
+        require(application.scholarshipId == scholarshipId, "Application mismatch");
+        require(application.status == ApplicationStatus.Applied, "Invalid application status");
 
         Scholarship storage scholarship = scholarships[scholarshipId];
         require(scholarship.remainingGrants > 0, "No remaining grants");
@@ -192,27 +145,14 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         application.status = ApplicationStatus.Approved;
         scholarship.remainingGrants--;
 
-        bool success = IERC20(scholarship.tokenId).transfer(
-            application.applicant,
-            scholarship.grantAmount
-        );
+        bool success = IERC20(scholarship.tokenId).transfer(application.applicant, scholarship.grantAmount);
         require(success, "token transfer failed");
 
-        emit ApplicationStatusChanged(
-            applicationId,
-            ApplicationStatus.Approved
-        );
-        emit GrantAwarded(
-            scholarshipId,
-            application.applicant,
-            scholarship.grantAmount
-        );
+        emit ApplicationStatusChanged(applicationId, ApplicationStatus.Approved);
+        emit GrantAwarded(scholarshipId, application.applicant, scholarship.grantAmount);
     }
 
-    function cancelScholarship(
-        uint256 scholarshipId,
-        string calldata reason
-    )
+    function cancelScholarship(uint256 scholarshipId, string calldata reason)
         external
         whenNotPaused
         nonReentrant
@@ -224,8 +164,7 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         require(!scholarship.isCancelled, "Scholarship already cancelled");
         require(bytes(reason).length > 0, "Must provide cancellation reason");
 
-        uint256 refundAmount = scholarship.grantAmount *
-            scholarship.remainingGrants;
+        uint256 refundAmount = scholarship.grantAmount * scholarship.remainingGrants;
 
         scholarship.active = false;
         scholarship.remainingGrants = 0;
@@ -233,18 +172,13 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         scholarship.cancellationReason = reason;
         scholarship.cancelledAt = block.timestamp;
 
-        bool success = IERC20(scholarship.tokenId).transfer(
-            msg.sender,
-            refundAmount
-        );
+        bool success = IERC20(scholarship.tokenId).transfer(msg.sender, refundAmount);
         require(success, "token transfer failed");
 
         emit ScholarshipCancelled(scholarshipId, reason, refundAmount);
     }
 
-    function withdrawExpiredScholarship(
-        uint256 scholarshipId
-    )
+    function withdrawExpiredScholarship(uint256 scholarshipId)
         external
         whenNotPaused
         nonReentrant
@@ -253,26 +187,16 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
     {
         Scholarship storage scholarship = scholarships[scholarshipId];
         require(!scholarship.isCancelled, "Scholarship was cancelled");
-        require(
-            block.timestamp >= scholarship.endDate,
-            "Scholarship not expired"
-        );
+        require(block.timestamp >= scholarship.endDate, "Scholarship not expired");
         require(scholarship.remainingGrants > 0, "No grants remaining");
-        require(
-            scholarship.active,
-            "Scholarship already withdrawn or cancelled"
-        );
+        require(scholarship.active, "Scholarship already withdrawn or cancelled");
 
-        uint256 refundAmount = scholarship.grantAmount *
-            scholarship.remainingGrants;
+        uint256 refundAmount = scholarship.grantAmount * scholarship.remainingGrants;
 
         scholarship.active = false;
         scholarship.remainingGrants = 0;
 
-        bool success = IERC20(scholarship.tokenId).transfer(
-            msg.sender,
-            refundAmount
-        );
+        bool success = IERC20(scholarship.tokenId).transfer(msg.sender, refundAmount);
         require(success, "token transfer failed");
 
         emit ScholarshipWithdrawn(scholarshipId, refundAmount);
@@ -283,17 +207,13 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         return scholarships;
     }
 
-    function getApplicationsForScholarship(
-        uint256 scholarshipId
-    )
+    function getApplicationsForScholarship(uint256 scholarshipId)
         external
         view
         validScholarship(scholarshipId)
         returns (Application[] memory)
     {
-        uint256[] memory applicationIds = scholarshipApplications[
-            scholarshipId
-        ];
+        uint256[] memory applicationIds = scholarshipApplications[scholarshipId];
         Application[] memory result = new Application[](applicationIds.length);
 
         for (uint256 i = 0; i < applicationIds.length; i++) {
@@ -302,9 +222,7 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         return result;
     }
 
-    function getUserApplications(
-        address user
-    ) external view returns (Application[] memory) {
+    function getUserApplications(address user) external view returns (Application[] memory) {
         uint256[] memory applicationIds = userApplications[user];
         Application[] memory result = new Application[](applicationIds.length);
 
@@ -324,9 +242,7 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
     }
 
     //private functions - helpers
-    function checkIsContract(
-        address target
-    ) private view returns (bool isContract) {
+    function checkIsContract(address target) private view returns (bool isContract) {
         if (target.code.length == 0) {
             isContract = false;
         } else {

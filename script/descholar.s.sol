@@ -13,10 +13,7 @@ contract DeployDescholar is Script {
 
         postTestScholarship(desch);
 
-        console.log(
-            "Deployed descholar contract at address: %s",
-            address(desch)
-        );
+        console.log("Deployed descholar contract at address: %s", address(desch));
         vm.stopBroadcast();
     }
 
