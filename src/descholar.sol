@@ -68,11 +68,9 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         require(numberOfGrants > 0 && numberOfGrants <= MAX_GRANTS, "Invalid number of grants");
         require(endDate > block.timestamp, "Invalid end date");
 
-        require(checkIsContract(tokenId), "Invalid token address"); // check if address is a contract
-        IERC20 token = IERC20(tokenId);
         uint256 totalAmount = grantAmount * numberOfGrants;
-        require(token.transferFrom(msg.sender, address(this), totalAmount), "Transfer failed"); //erc20 support //TODO: custom errors
-        // require(msg.value == totalAmount, "Incorrect payment amount"); // old version
+
+        EnsurePostScholarshipTokenTransfer(tokenId, totalAmount);
 
         uint256 scholarshipId = scholarships.length;
         scholarships.push(
@@ -145,8 +143,12 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         application.status = ApplicationStatus.Approved;
         scholarship.remainingGrants--;
 
-        bool success = IERC20(scholarship.tokenId).transfer(application.applicant, scholarship.grantAmount);
-        require(success, "token transfer failed");
+        if (scholarship.tokenId == address(0)) {
+            payable(application.applicant).transfer(scholarship.grantAmount);
+        } else {
+            bool success = IERC20(scholarship.tokenId).transfer(application.applicant, scholarship.grantAmount);
+            require(success, "token transfer failed");
+        }
 
         emit ApplicationStatusChanged(applicationId, ApplicationStatus.Approved);
         emit GrantAwarded(scholarshipId, application.applicant, scholarship.grantAmount);
@@ -172,8 +174,12 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         scholarship.cancellationReason = reason;
         scholarship.cancelledAt = block.timestamp;
 
-        bool success = IERC20(scholarship.tokenId).transfer(msg.sender, refundAmount);
-        require(success, "token transfer failed");
+        if (scholarship.tokenId == address(0)) {
+            payable(scholarship.creator).transfer(refundAmount);
+        } else {
+            bool success = IERC20(scholarship.tokenId).transfer(scholarship.creator, refundAmount);
+            require(success, "token transfer failed");
+        }
 
         emit ScholarshipCancelled(scholarshipId, reason, refundAmount);
     }
@@ -196,9 +202,12 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         scholarship.active = false;
         scholarship.remainingGrants = 0;
 
-        bool success = IERC20(scholarship.tokenId).transfer(msg.sender, refundAmount);
-        require(success, "token transfer failed");
-
+        if (scholarship.tokenId == address(0)) {
+            payable(scholarship.creator).transfer(refundAmount);
+        } else {
+            bool success = IERC20(scholarship.tokenId).transfer(scholarship.creator, refundAmount);
+            require(success, "token transfer failed");
+        }
         emit ScholarshipWithdrawn(scholarshipId, refundAmount);
     }
 
@@ -247,6 +256,19 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
             isContract = false;
         } else {
             isContract = true;
+        }
+    }
+
+    function EnsurePostScholarshipTokenTransfer(address tokenId, uint256 totalAmount) private {
+        if (tokenId == address(0)) {
+            // Process native ETH payment
+            require(msg.value == totalAmount, "Native token: incorrect payment amount");
+        } else {
+            // Process ERC20 payment
+            require(msg.value == 0, "ERC20 token: no ether required");
+            require(checkIsContract(tokenId), "ERC20 token: invalid token address");
+            IERC20 token = IERC20(tokenId);
+            require(token.transferFrom(msg.sender, address(this), totalAmount), "ERC20 token: transfer failed");
         }
     }
 }
