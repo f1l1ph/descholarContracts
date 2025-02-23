@@ -13,7 +13,7 @@ deploy_testnet:
 	forge clean
 	forge build  
 	## !change constructor args to your own
-	forge create --rpc-url $(SEPOLIA_TESTNET_RPC) --private-key $(PRIVATE_KEY) src/descholar.sol:Descholar --broadcast --constructor-args 0x6486795CD89D7439090c3906b4C9ebd4a59b4c40
+	forge create --rpc-url $(EDU_RPC_TESTNET) --private-key $(PRIVATE_KEY) src/descholar.sol:Descholar --broadcast --constructor-args 0x6486795CD89D7439090c3906b4C9ebd4a59b4c40
 
 deploy_mainnet:
 	@echo "Deploying to mainnet"

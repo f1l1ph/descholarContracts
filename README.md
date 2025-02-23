@@ -80,5 +80,5 @@ $ cast --help
 ### Contract address on EDU Chain testnet
 
 ```shell
-0xE4A47394E4553D93D588E014B8857Be629943DF7
+0x653bf4b959101e008A3251A960C46e8C6c1138B3
 ```
