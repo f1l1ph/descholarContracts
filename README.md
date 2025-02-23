@@ -76,3 +76,9 @@ $ forge --help
 $ anvil --help
 $ cast --help
 ```
+
+### Contract address on EDU Chain testnet
+
+```shell
+0xE4A47394E4553D93D588E014B8857Be629943DF7
+```
