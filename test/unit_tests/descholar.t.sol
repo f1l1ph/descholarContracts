@@ -38,6 +38,7 @@ contract DescholarTest is Test {
         Scholarship memory scholarship = Scholarship({
             id: 0,
             name: "Test Scholarship",
+            creatorName: "Admin",
             details: "A test scholarship.",
             grantAmount: grantAmount,
             remainingGrants: availableGrants,
@@ -60,9 +61,10 @@ contract DescholarTest is Test {
         // Calculate total amount
         totalAmount = grantAmount * availableGrants;
 
-        // Call post_scholarship with correct Ether
-        descholarContract.postScholarship{value: totalAmount}(
+        // Call post_scholarship for ERC20 token
+        descholarContract.postScholarship(
             scholarship.name,
+            scholarship.creatorName,
             scholarship.details,
             scholarship.grantAmount,
             scholarship.totalGrants,

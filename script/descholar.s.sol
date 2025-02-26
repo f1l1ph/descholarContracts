@@ -20,6 +20,7 @@ contract DeployDescholar is Script {
     function postTestScholarship(Descholar desch) private {
         desch.postScholarship(
             "Demo Scholarship",
+            "Admin",
             "This is a demo scholarship for testing purposes.",
             500000000000000000,
             1,

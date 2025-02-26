@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 struct Scholarship {
     uint256 id;
     string name;
+    string creatorName;
     string details;
     uint256 grantAmount;
     uint256 remainingGrants;

@@ -56,6 +56,7 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
     // Main functions
     function postScholarship(
         string calldata name,
+        string calldata creatorName,
         string calldata details,
         uint256 grantAmount,
         uint256 numberOfGrants,
@@ -77,6 +78,7 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
             Scholarship({
                 id: scholarshipId,
                 name: name,
+                creatorName: creatorName,
                 details: details,
                 grantAmount: grantAmount,
                 remainingGrants: numberOfGrants,

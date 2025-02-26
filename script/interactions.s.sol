@@ -16,6 +16,7 @@ contract PostScholarship is Script {
         vm.startBroadcast();
         Descholar(mostRecentlyDeployed).postScholarship(
             "My Scholarship",
+            "Admin",
             "Some details here",
             1000, // grantAmount
             10, // totalGrants
