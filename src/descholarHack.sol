@@ -50,11 +50,13 @@ contract descholarHack {
     }
 
     function fundHackaton(uint256 _hackatonId) public payable {
+        // anyone can fund a hackathon
         Hackaton storage hackaton = hackathons[_hackatonId];
         hackaton.funders.push(msg.sender);
     }
 
     function joinHackaton(uint256 _hackatonId) public {
+        //judges/investors/creator cannot join
         Hackaton storage hackaton = hackathons[_hackatonId];
         hackaton.participants.push(msg.sender);
     }
