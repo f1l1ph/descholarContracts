@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 struct Hackaton {
     string name;
     string description;
@@ -14,7 +20,14 @@ struct Hackaton {
     address[] teams;
 }
 
-contract descholarHack {
+struct Team {
+    string name;
+    address admin;
+    address[] members;
+    string[] track;
+}
+
+contract descholarHack is ReentrancyGuard, Ownable, Pausable {
     // @Featuers:
     // hackathon creator
     // hackathon funder/investor
@@ -22,7 +35,14 @@ contract descholarHack {
     // hackathon participants
     // participants can make teams
 
-    Hackaton[] public hackathons;
+    // @admin features
+    // anyone can/cannot be an invesotr
+    // investors are/are not judges
+    // hackathon creator can/cannot be a judge
+
+    constructor() Ownable(msg.sender) {}
+
+    Hackaton[] private hackathons;
 
     function createHackathon(
         string memory _name,
