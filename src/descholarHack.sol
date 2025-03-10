@@ -40,6 +40,12 @@ contract descholarHack is ReentrancyGuard, Ownable, Pausable {
     // investors are/are not judges
     // hackathon creator can/cannot be a judge
 
+    //TODO: Hackaton is a standalone contract
+
+    bool private investorsAreJudges = false;
+    bool private creatorIsJudge = false;
+    bool private anyoneCanInvest = false;
+
     constructor() Ownable(msg.sender) {}
 
     Hackaton[] private hackathons;
