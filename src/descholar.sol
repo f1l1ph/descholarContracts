@@ -65,9 +65,9 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
     ) external payable whenNotPaused nonReentrant {
         require(bytes(name).length > 0, "Empty name");
         require(bytes(details).length > 0, "Empty details");
-        // require(grantAmount >= MIN_GRANT_AMOUNT, "Grant amount too low");
-        // require(numberOfGrants > 0 && numberOfGrants <= MAX_GRANTS, "Invalid number of grants");
-        // require(endDate > block.timestamp, "Invalid end date");
+        require(grantAmount >= MIN_GRANT_AMOUNT, "Grant amount too low");
+        require(numberOfGrants > 0 && numberOfGrants <= MAX_GRANTS, "Invalid number of grants");
+        require(endDate > block.timestamp, "Invalid end date");
 
         uint256 totalAmount = grantAmount * numberOfGrants;
 
