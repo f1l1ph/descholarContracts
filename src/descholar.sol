@@ -5,7 +5,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Scholarship, ApplicationStatus, Application} from "./descholar.utilities.sol";
 
 contract Descholar is ReentrancyGuard, Ownable, Pausable {
@@ -148,8 +149,8 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         if (scholarship.tokenId == address(0)) {
             payable(application.applicant).transfer(scholarship.grantAmount);
         } else {
-            bool success = IERC20(scholarship.tokenId).transfer(application.applicant, scholarship.grantAmount);
-            require(success, "token transfer failed");
+            IERC20 token = IERC20(scholarship.tokenId);
+            SafeERC20.safeTransfer(token, application.applicant, scholarship.grantAmount);
         }
 
         emit ApplicationStatusChanged(applicationId, ApplicationStatus.Approved);
@@ -179,8 +180,8 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         if (scholarship.tokenId == address(0)) {
             payable(scholarship.creator).transfer(refundAmount);
         } else {
-            bool success = IERC20(scholarship.tokenId).transfer(scholarship.creator, refundAmount);
-            require(success, "token transfer failed");
+            IERC20 token = IERC20(scholarship.tokenId);
+            SafeERC20.safeTransfer(token, scholarship.creator, refundAmount);
         }
 
         emit ScholarshipCancelled(scholarshipId, reason, refundAmount);
@@ -270,7 +271,7 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
             require(msg.value == 0, "ERC20 token: no ether required");
             require(checkIsContract(tokenId), "ERC20 token: invalid token address");
             IERC20 token = IERC20(tokenId);
-            require(token.transferFrom(msg.sender, address(this), totalAmount), "ERC20 token: transfer failed");
+            SafeERC20.safeTransferFrom(token, msg.sender, address(this), totalAmount);
         }
     }
 }
