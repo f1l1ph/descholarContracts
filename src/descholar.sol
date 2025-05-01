@@ -147,7 +147,8 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         scholarship.remainingGrants--;
 
         if (scholarship.tokenId == address(0)) {
-            payable(application.applicant).transfer(scholarship.grantAmount);
+            (bool success, ) = payable(application.applicant).call{value: scholarship.grantAmount}("");
+            require(success, "ETH transfer failed");
         } else {
             IERC20 token = IERC20(scholarship.tokenId);
             SafeERC20.safeTransfer(token, application.applicant, scholarship.grantAmount);
