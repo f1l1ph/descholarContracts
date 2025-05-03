@@ -49,8 +49,11 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         _;
     }
 
-    modifier onlyScholarshipCreator(uint256 scholarshipId) {
-        require(msg.sender == scholarships[scholarshipId].creator, "Not scholarship creator");
+    modifier onlyScholarshipCreatorOrAdmin(uint256 scholarshipId) {
+        require(
+            msg.sender == scholarships[scholarshipId].creator || msg.sender == owner(),
+            "Not scholarship creator or admin"
+        );
         _;
     }
 
@@ -65,8 +68,10 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         address tokenId
     ) external payable whenNotPaused nonReentrant {
         require(bytes(name).length > 0, "Empty name");
+        require(bytes(creatorName).length > 0, "Empty creator name");
         require(bytes(details).length > 0, "Empty details");
         require(bytes(name).length <= 100, "Name too long");
+        require(bytes(creatorName).length <= 100, "Creator name too long");
         require(bytes(details).length <= 2500, "Details too long");
         require(grantAmount >= MIN_GRANT_AMOUNT, "Grant amount too low");
         require(numberOfGrants > 0 && numberOfGrants <= MAX_GRANTS, "Invalid number of grants");
@@ -138,7 +143,7 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         whenNotPaused
         nonReentrant
         validScholarship(scholarshipId)
-        onlyScholarshipCreator(scholarshipId)
+        onlyScholarshipCreatorOrAdmin(scholarshipId)
     {
         Application storage application = applications[applicationId];
         require(application.scholarshipId == scholarshipId, "Application mismatch");
@@ -167,7 +172,7 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         whenNotPaused
         nonReentrant
         validScholarship(scholarshipId)
-        onlyScholarshipCreator(scholarshipId)
+        onlyScholarshipCreatorOrAdmin(scholarshipId)
     {
         Application storage application = applications[applicationId];
         require(application.scholarshipId == scholarshipId, "Application mismatch");
@@ -183,7 +188,7 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         whenNotPaused
         nonReentrant
         validScholarship(scholarshipId)
-        onlyScholarshipCreator(scholarshipId)
+        onlyScholarshipCreatorOrAdmin(scholarshipId)
     {
         Scholarship storage scholarship = scholarships[scholarshipId];
         require(scholarship.active, "Scholarship already inactive");
@@ -214,7 +219,7 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         whenNotPaused
         nonReentrant
         validScholarship(scholarshipId)
-        onlyScholarshipCreator(scholarshipId)
+        onlyScholarshipCreatorOrAdmin(scholarshipId)
     {
         Scholarship storage scholarship = scholarships[scholarshipId];
         require(!scholarship.isCancelled, "Scholarship was cancelled");
