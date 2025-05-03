@@ -231,6 +231,29 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         emit ScholarshipWithdrawn(scholarshipId, refundAmount);
     }
 
+    function withdrawStuckTokens(address tokenAddress, uint256 amount)
+        external
+        onlyOwner
+        whenNotPaused
+    {
+        require(tokenAddress != address(0), "Invalid token address");
+        require(amount > 0, "Invalid amount");
+
+        IERC20 token = IERC20(tokenAddress);
+        uint256 balance = token.balanceOf(address(this));
+        require(balance >= amount, "Insufficient balance");
+
+        SafeERC20.safeTransfer(token, msg.sender, amount);
+    }
+
+    function withdrawStuckETH(uint256 amount) external onlyOwner whenNotPaused {
+        require(amount > 0, "Invalid amount");
+        require(address(this).balance >= amount, "Insufficient balance");
+
+        (bool success, ) = msg.sender.call{value: amount}("");
+        require(success, "ETH transfer failed");
+    }
+
     // View functions
     function getScholarships() external view returns (Scholarship[] memory) {
         return scholarships;
@@ -268,6 +291,24 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
 
     function unpause() external onlyOwner {
         _unpause();
+    }
+
+    function getBalance() external view onlyOwner returns (uint256) {
+        return address(this).balance;
+    }
+
+    function getTokenBalance(address tokenId) external view onlyOwner returns (uint256) {
+        require(checkIsContract(tokenId), "Invalid token address");
+        IERC20 token = IERC20(tokenId);
+        return token.balanceOf(address(this));
+    }
+
+    function getTokenIds() external view onlyOwner returns (address[] memory) {
+        address[] memory tokenIds = new address[](scholarships.length);
+        for (uint256 i = 0; i < scholarships.length; i++) {
+            tokenIds[i] = scholarships[i].tokenId;
+        }
+        return tokenIds;
     }
 
     //private functions - helpers
