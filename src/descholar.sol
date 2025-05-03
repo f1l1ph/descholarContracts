@@ -66,6 +66,8 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
     ) external payable whenNotPaused nonReentrant {
         require(bytes(name).length > 0, "Empty name");
         require(bytes(details).length > 0, "Empty details");
+        require(bytes(name).length <= 100, "Name too long");
+        require(bytes(details).length <= 2500, "Details too long");
         require(grantAmount >= MIN_GRANT_AMOUNT, "Grant amount too low");
         require(numberOfGrants > 0 && numberOfGrants <= MAX_GRANTS, "Invalid number of grants");
         require(endDate > block.timestamp, "Invalid end date");
@@ -109,6 +111,8 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         require(bytes(name).length > 0, "Empty name");
         require(bytes(details).length > 0, "Empty details");
         require(!hasApplied[scholarshipId][msg.sender], "Already applied");
+        require(bytes(name).length <= 100, "Name too long");
+        require(bytes(details).length <= 2500, "Details too long");
 
         uint256 applicationId = applications.length;
         applications.push(
@@ -185,6 +189,7 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         require(scholarship.active, "Scholarship already inactive");
         require(!scholarship.isCancelled, "Scholarship already cancelled");
         require(bytes(reason).length > 0, "Must provide cancellation reason");
+        require(bytes(reason).length <= 2500, "Cancellation reason too long");
 
         uint256 refundAmount = scholarship.grantAmount * scholarship.remainingGrants;
 
@@ -223,10 +228,11 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         scholarship.remainingGrants = 0;
 
         if (scholarship.tokenId == address(0)) {
-            payable(scholarship.creator).transfer(refundAmount);
+            (bool success, ) = payable(scholarship.creator).call{value: refundAmount}("");
+            require(success, "ETH transfer failed");
         } else {
-            bool success = IERC20(scholarship.tokenId).transfer(scholarship.creator, refundAmount);
-            require(success, "token transfer failed");
+            IERC20 token = IERC20(scholarship.tokenId);
+            SafeERC20.safeTransfer(token, scholarship.creator, refundAmount);
         }
         emit ScholarshipWithdrawn(scholarshipId, refundAmount);
     }
