@@ -148,6 +148,7 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         Application storage application = applications[applicationId];
         require(application.scholarshipId == scholarshipId, "Application mismatch");
         require(application.status == ApplicationStatus.Applied, "Invalid application status");
+        require(application.id < applications.length, "Invalid application ID");
 
         Scholarship storage scholarship = scholarships[scholarshipId];
         require(scholarship.remainingGrants > 0, "No remaining grants");
@@ -177,6 +178,7 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         Application storage application = applications[applicationId];
         require(application.scholarshipId == scholarshipId, "Application mismatch");
         require(application.status == ApplicationStatus.Applied, "Invalid application status");
+        require(application.id < applications.length, "Invalid application ID");
 
         application.status = ApplicationStatus.Rejected;
 
