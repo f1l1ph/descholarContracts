@@ -158,6 +158,22 @@ contract Descholar is ReentrancyGuard, Ownable, Pausable {
         emit GrantAwarded(scholarshipId, application.applicant, scholarship.grantAmount);
     }
 
+    function rejectApplication(uint256 scholarshipId, uint256 applicationId)
+        external
+        whenNotPaused
+        nonReentrant
+        validScholarship(scholarshipId)
+        onlyScholarshipCreator(scholarshipId)
+    {
+        Application storage application = applications[applicationId];
+        require(application.scholarshipId == scholarshipId, "Application mismatch");
+        require(application.status == ApplicationStatus.Applied, "Invalid application status");
+
+        application.status = ApplicationStatus.Rejected;
+
+        emit ApplicationStatusChanged(applicationId, ApplicationStatus.Rejected);
+    }
+
     function cancelScholarship(uint256 scholarshipId, string calldata reason)
         external
         whenNotPaused
